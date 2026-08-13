@@ -1,0 +1,40 @@
+#!/bin/bash
+# SoFD Randomizer USA PSP - ULUS10374 - Linux Mint 21 Cinnamon
+# Fixed for case sensitivity + both class names
+set -e
+echo "Building SoFD Randomizer USA PSP - ULUS10374"
+
+mkdir -p build
+
+# Find actual java file (case-insensitive)
+SRC_FILE=$(find src -iname "sofd*.java" -o -iname "psm*.java" | head -n 1)
+if [ -z "$SRC_FILE" ]; then
+  echo "No source found in src/"
+  ls -la src/
+  exit 1
+fi
+
+echo "Using source: $SRC_FILE"
+
+javac -Xlint:serial "$SRC_FILE" -d build/
+
+if [ $? -eq 0 ]; then
+  echo ""
+  echo "Build OK"
+  ls build/*.class
+  echo ""
+  # Detect main class
+  if [ -f "build/SoFDRandomizer.class" ]; then
+    echo "Starting SoFDRandomizer..."
+    java -cp build SoFDRandomizer
+  elif [ -f "build/PsmManTool.class" ]; then
+    echo "Starting PsmManTool..."
+    java -cp build PsmManTool
+  else
+    echo "Classes built but main not found, listing:"
+    ls build/
+  fi
+else
+  echo "Build failed"
+  exit 1
+fi
